@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, jsonify
 import pickle
+from utils import make_prediction
 
 tokenizer = pickle.load(open('models/cv.pkl','rb'))
 model = pickle.load(open('models/clf.pkl','rb')) 
@@ -13,17 +14,13 @@ def home():
 @app.route('/predict', methods=['POST']) 
 def submit(): 
     email_text = request.form.get('email_body')
-    tokenised_email = tokenizer.transform([email_text]) 
-    prediction = model.predict(tokenised_email)
-    return render_template('index.html', response=prediction[0], website_text=email_text)
+    return render_template('index.html', response=make_prediction(email_text), website_text=email_text)
 
 @app.route('/api/predict', methods=['POST'])
 def api_predict():
     data = request.get_json(force=True)
     email_text = data['email_body']
-    tokenised_email = tokenizer.transform([email_text])
-    prediction = model.predict(tokenised_email)
-    return jsonify({'prediction': prediction[0]})
+    return jsonify({'prediction': make_prediction(email_text)})
 
 if __name__ == '__main__':
     app.run(debug=True)
